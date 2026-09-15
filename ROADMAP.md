@@ -31,12 +31,12 @@
 
 ## Phase 2 — Local Enforcement
 
-- [ ] `zigguard check`
+- [x] `zigguard check`
 - [ ] Git policy checks
 - [ ] secret scanning integration
 - [ ] lint/test command discovery
 - [ ] Claude hook enforcement where technically appropriate
-- [ ] machine-readable check/report output
+- [x] machine-readable check/report output
 
 ## Phase 3 — Repository Integration
 

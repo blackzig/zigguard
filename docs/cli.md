@@ -49,7 +49,21 @@ The initial surfaces are **instruction context**, not hard security controls.
 
 A `block` rule is rendered as an explicit mandatory instruction, but ZigGuard does not claim that a natural-language agent instruction is technically equivalent to branch protection, a hook, a CI gate, or a security scanner.
 
-Future local enforcement and hook adapters will complement instruction surfaces.
+The first local enforcement command is `zigguard check`.
+
+### zigguard check
+
+`zigguard check` is read-only. It validates the policy, compiles the expected artifacts in memory, and compares them with the repository.
+
+Violation IDs:
+
+| ID | Meaning |
+| --- | --- |
+| `ZG001` | expected generated artifact is missing |
+| `ZG002` | ZigGuard-managed artifact has drifted from the current policy |
+| `ZG003` | expected artifact path is occupied by an unmanaged file |
+
+The command exits with code `1` when violations exist and supports `--format json` for CI integrations. It does not execute project scripts.
 
 ## Examples
 
@@ -58,6 +72,8 @@ zigguard init
 zigguard validate
 zigguard compile --dry-run
 zigguard compile
+zigguard check
+zigguard check --format json
 ```
 
 Use a different policy or repository root with:

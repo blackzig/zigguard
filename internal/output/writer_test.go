@@ -71,3 +71,31 @@ func TestWriteArtifactsAllowsExplicitForce(t *testing.T) {
 		t.Fatalf("content = %q, want forced content", string(got))
 	}
 }
+
+func TestWriteArtifactsUpdatesZigGuardMetadataWithoutForce(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, ".zigguard")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "manifest.json")
+	if err := os.WriteFile(path, []byte("{\"old\":true}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	artifact := compiler.Artifact{
+		Path:    ".zigguard/manifest.json",
+		Content: "{\"new\":true}\n",
+	}
+	if err := WriteArtifacts(root, []compiler.Artifact{artifact}, false); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != artifact.Content {
+		t.Fatalf("content = %q, want %q", string(got), artifact.Content)
+	}
+}
