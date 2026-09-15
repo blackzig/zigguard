@@ -1,0 +1,30 @@
+version: "0.1"
+
+project:
+  name: billing-api
+  stack:
+    - java
+    - spring-boot
+    - oracle
+
+targets:
+  - claude
+  - codex
+  - cursor
+  - copilot
+
+rules:
+  scope:
+    refactor_outside_request: block
+    public_api_changes: require_approval
+
+  security:
+    secrets: block
+    dynamic_sql: block
+
+  quality:
+    tests_required: true
+    lint_required: true
+
+  git:
+    force_push_protected_branches: block
