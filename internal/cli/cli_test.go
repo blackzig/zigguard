@@ -44,12 +44,12 @@ func TestInitValidateAndCompileDryRun(t *testing.T) {
 	}
 }
 
-func TestCompileRefusesUnmanagedAgentsFile(t *testing.T) {
+func TestCompilePreservesExistingHumanAgentsFile(t *testing.T) {
 	root := t.TempDir()
 	policyPath := filepath.Join(root, "zigguard.yml")
 	if err := os.WriteFile(policyPath, []byte(`version: "0.1"
 project:
-  name: collision
+  name: coexistence
 targets:
   - codex
 rules:
@@ -58,18 +58,29 @@ rules:
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# existing\n"), 0o644); err != nil {
+
+	agentsPath := filepath.Join(root, "AGENTS.md")
+	human := "# Existing human instructions\n\nKeep this text.\n"
+	if err := os.WriteFile(agentsPath, []byte(human), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	var out bytes.Buffer
 	var errOut bytes.Buffer
 	code := Run([]string{"compile", "--file", policyPath, "--root", root}, &out, &errOut)
-	if code == 0 {
-		t.Fatal("compile code = 0, want failure")
+	if code != 0 {
+		t.Fatalf("compile code = %d, stderr = %s", code, errOut.String())
 	}
-	if !strings.Contains(errOut.String(), "unmanaged") {
-		t.Fatalf("stderr = %q, want unmanaged collision", errOut.String())
+
+	got, err := os.ReadFile(agentsPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(string(got), human) {
+		t.Fatalf("human instructions were not preserved: %q", got)
+	}
+	if !strings.Contains(string(got), "<!-- zigguard:managed:start -->") {
+		t.Fatalf("managed section was not appended: %q", got)
 	}
 }
 
@@ -99,7 +110,7 @@ func TestCheckPassesAfterCompile(t *testing.T) {
 	}
 }
 
-func TestCheckJSONReportsDrift(t *testing.T) {
+func TestCheckJSONReportsManagedSectionDrift(t *testing.T) {
 	root := t.TempDir()
 	policyPath := filepath.Join(root, "zigguard.yml")
 
@@ -119,7 +130,15 @@ func TestCheckJSONReportsDrift(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(path, append(current, []byte("\ndrift\n")...), 0o644); err != nil {
+	changed := bytes.Replace(current,
+		[]byte("Do not refactor code outside the user's requested scope."),
+		[]byte("Changed managed policy text."),
+		1,
+	)
+	if bytes.Equal(changed, current) {
+		t.Fatal("test setup failed to modify managed policy")
+	}
+	if err := os.WriteFile(path, changed, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
