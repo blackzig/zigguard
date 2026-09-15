@@ -44,7 +44,7 @@ The first milestone is intentionally narrow:
 - `zigguard compile`;
 - `zigguard check` for generated-artifact integrity;
 - deterministic generated output;
-- safe refusal to overwrite unmanaged agent files;
+- managed-section merging that preserves existing human-authored agent instructions;
 - shared `AGENTS.md` output for Codex, Cursor, and GitHub Copilot;
 - `CLAUDE.md` output for Claude Code;
 - generated target manifest;
@@ -69,7 +69,7 @@ go build -o bin/zigguard ./cmd/zigguard
 ./bin/zigguard check
 ```
 
-The compiler refuses to overwrite an existing unmanaged `AGENTS.md` or `CLAUDE.md` unless `--force` is explicitly supplied.
+If `AGENTS.md` or `CLAUDE.md` already contains human-authored instructions, ZigGuard preserves them and manages only the section between `<!-- zigguard:managed:start -->` and `<!-- zigguard:managed:end -->`. Malformed or duplicate managed markers fail safely instead of triggering a destructive rewrite.
 
 See [docs/cli.md](docs/cli.md).
 
@@ -116,7 +116,7 @@ MVP 0.1 generates **instruction context**. A rule rendered as `BLOCK` is a stron
 
 ZigGuard will add mechanical enforcement paths where they are technically possible. It will not market natural-language guidance as a hard security boundary.
 
-`zigguard check` is the first mechanical control: it fails when generated governance artifacts are missing, drifted from `zigguard.yml`, or replaced by unmanaged files. It does not yet enforce the semantic rules inside those instructions.
+`zigguard check` is the first mechanical control: it fails when required managed sections/files are missing, when ZigGuard-owned content drifts from `zigguard.yml`, or when managed markers are malformed/ambiguous. Human-authored content outside ZigGuard's section is intentionally ignored. The command does not yet enforce the semantic rules inside agent instructions.
 
 See the current [target capability matrix](docs/capability-matrix.md).
 

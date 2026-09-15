@@ -27,7 +27,7 @@
 - [x] Formal target capability matrix
 - [x] Automated cross-platform release workflow
 - [ ] Publish first pre-release binaries
-- [ ] Add managed-section merging for existing instruction files
+- [x] Add managed-section merging for existing instruction files
 
 ## Phase 2 — Local Enforcement
 

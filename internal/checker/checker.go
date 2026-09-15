@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/blackzig/zigguard/internal/compiler"
+	"github.com/blackzig/zigguard/internal/managed"
 	"github.com/blackzig/zigguard/internal/policy"
 )
 
@@ -70,24 +71,10 @@ func Check(root string, p policy.Policy) (Report, error) {
 			return Report{}, fmt.Errorf("read artifact %q: %w", artifact.Path, err)
 		}
 
-		if bytes.Equal(current, []byte(artifact.Content)) {
-			continue
+		violation := checkArtifact(artifact, current)
+		if violation != nil {
+			report.Violations = append(report.Violations, *violation)
 		}
-
-		if isManagedArtifact(artifact.Path, current) {
-			report.Violations = append(report.Violations, Violation{
-				ID:      DriftedArtifact,
-				Path:    artifact.Path,
-				Message: "generated artifact differs from the current policy",
-			})
-			continue
-		}
-
-		report.Violations = append(report.Violations, Violation{
-			ID:      UnmanagedConflict,
-			Path:    artifact.Path,
-			Message: "expected artifact path is occupied by an unmanaged file",
-		})
 	}
 
 	sort.Slice(report.Violations, func(i, j int) bool {
@@ -98,6 +85,64 @@ func Check(root string, p policy.Policy) (Report, error) {
 	})
 	report.OK = len(report.Violations) == 0
 	return report, nil
+}
+
+func checkArtifact(artifact compiler.Artifact, current []byte) *Violation {
+	if artifact.Ownership == compiler.ManagedSection {
+		section, state, err := managed.Extract(current)
+		if err != nil {
+			return &Violation{
+				ID:      UnmanagedConflict,
+				Path:    artifact.Path,
+				Message: "ZigGuard managed section markers are malformed or ambiguous",
+			}
+		}
+		if state == managed.Missing {
+			if bytes.HasPrefix(current, []byte(managed.LegacyMarker)) {
+				return &Violation{
+					ID:      DriftedArtifact,
+					Path:    artifact.Path,
+					Message: "legacy ZigGuard-managed file must be recompiled into a managed section",
+				}
+			}
+			if bytes.Contains(current, []byte(managed.LegacyMarker)) {
+				return &Violation{
+					ID:      UnmanagedConflict,
+					Path:    artifact.Path,
+					Message: "legacy ZigGuard marker is in an ambiguous location",
+				}
+			}
+			return &Violation{
+				ID:      MissingArtifact,
+				Path:    artifact.Path,
+				Message: "ZigGuard managed section is missing",
+			}
+		}
+		if !bytes.Equal(section, []byte(artifact.Content)) {
+			return &Violation{
+				ID:      DriftedArtifact,
+				Path:    artifact.Path,
+				Message: "ZigGuard managed section differs from the current policy",
+			}
+		}
+		return nil
+	}
+
+	if bytes.Equal(current, []byte(artifact.Content)) {
+		return nil
+	}
+	if isZigGuardOwnedFile(artifact.Path, current) {
+		return &Violation{
+			ID:      DriftedArtifact,
+			Path:    artifact.Path,
+			Message: "generated artifact differs from the current policy",
+		}
+	}
+	return &Violation{
+		ID:      UnmanagedConflict,
+		Path:    artifact.Path,
+		Message: "expected fully managed artifact path is occupied by an unmanaged file",
+	}
 }
 
 func artifactPath(rootAbs, artifactPath string) (string, error) {
@@ -121,10 +166,10 @@ func artifactPath(rootAbs, artifactPath string) (string, error) {
 	return targetAbs, nil
 }
 
-func isManagedArtifact(path string, current []byte) bool {
+func isZigGuardOwnedFile(path string, current []byte) bool {
 	normalized := filepath.ToSlash(filepath.Clean(path))
 	if strings.HasPrefix(normalized, ".zigguard/") {
 		return true
 	}
-	return bytes.Contains(current, []byte(compiler.ManagedMarker))
+	return bytes.HasPrefix(current, []byte(managed.LegacyMarker))
 }

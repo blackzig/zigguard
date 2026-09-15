@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/blackzig/zigguard/internal/compiler"
+	"github.com/blackzig/zigguard/internal/managed"
 )
 
 func WriteArtifacts(root string, artifacts []compiler.Artifact, force bool) error {
@@ -44,12 +45,15 @@ func writeArtifact(rootAbs string, artifact compiler.Artifact, force bool) error
 		return fmt.Errorf("artifact path escapes output root: %q", artifact.Path)
 	}
 
+	content := []byte(artifact.Content)
 	if current, err := os.ReadFile(targetAbs); err == nil {
-		if bytes.Equal(current, []byte(artifact.Content)) {
-			return nil
+		next, err := mergeExisting(artifact, current, force)
+		if err != nil {
+			return fmt.Errorf("prepare artifact %q: %w", artifact.Path, err)
 		}
-		if !force && !isManagedArtifact(artifact.Path, current) {
-			return fmt.Errorf("refusing to overwrite unmanaged file %q; move/merge it or rerun with --force", artifact.Path)
+		content = next
+		if bytes.Equal(current, content) {
+			return nil
 		}
 	} else if !os.IsNotExist(err) {
 		return fmt.Errorf("read existing artifact %q: %w", artifact.Path, err)
@@ -70,7 +74,7 @@ func writeArtifact(rootAbs string, artifact compiler.Artifact, force bool) error
 		tmp.Close()
 		return fmt.Errorf("set artifact permissions for %q: %w", artifact.Path, err)
 	}
-	if _, err := tmp.WriteString(artifact.Content); err != nil {
+	if _, err := tmp.Write(content); err != nil {
 		tmp.Close()
 		return fmt.Errorf("write artifact %q: %w", artifact.Path, err)
 	}
@@ -83,10 +87,34 @@ func writeArtifact(rootAbs string, artifact compiler.Artifact, force bool) error
 	return nil
 }
 
-func isManagedArtifact(path string, current []byte) bool {
+func mergeExisting(artifact compiler.Artifact, current []byte, force bool) ([]byte, error) {
+	switch ownership(artifact) {
+	case compiler.ManagedSection:
+		return managed.Merge(current, []byte(artifact.Content))
+	case compiler.ManagedFile:
+		if bytes.Equal(current, []byte(artifact.Content)) {
+			return current, nil
+		}
+		if force || isZigGuardOwnedFile(artifact.Path, current) {
+			return []byte(artifact.Content), nil
+		}
+		return nil, fmt.Errorf("refusing to overwrite unmanaged file; rerun with --force only if full replacement is intended")
+	default:
+		return nil, fmt.Errorf("unsupported ownership mode %q", artifact.Ownership)
+	}
+}
+
+func ownership(artifact compiler.Artifact) compiler.Ownership {
+	if artifact.Ownership == "" {
+		return compiler.ManagedFile
+	}
+	return artifact.Ownership
+}
+
+func isZigGuardOwnedFile(path string, current []byte) bool {
 	normalized := filepath.ToSlash(filepath.Clean(path))
 	if strings.HasPrefix(normalized, ".zigguard/") {
 		return true
 	}
-	return bytes.Contains(current, []byte(compiler.ManagedMarker))
+	return bytes.HasPrefix(current, []byte(managed.LegacyMarker))
 }
