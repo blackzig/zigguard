@@ -2,42 +2,69 @@
 
 > Universal governance layer for AI coding agents.
 
-ZigGuard is an open-core project for defining engineering policies once and compiling them into agent-specific instructions and enforcement hooks for AI-assisted software development.
+ZigGuard is an open-core project for defining engineering policies once and compiling them into safe, reviewable instruction and enforcement surfaces for AI-assisted software development.
 
-> **Status:** pre-alpha / specification phase. The policy format is being designed before the CLI and enforcement engine are implemented.
+> **Status:** pre-alpha. MVP 0.1 now includes a working Go CLI for policy initialization, validation, and deterministic instruction compilation.
 
 ## Why ZigGuard?
 
-Teams increasingly use more than one AI coding agent. Each tool has its own instruction format, project files, hooks, and conventions. That creates duplicated configuration and inconsistent behavior.
+Teams increasingly use more than one AI coding agent. Each tool has its own instruction formats and capabilities. Maintaining separate copies creates duplicated configuration, inconsistent behavior, and policy drift.
 
-ZigGuard aims to provide one source of truth:
+ZigGuard provides one source of truth:
 
 ```
 zigguard.yml
      |
-     +--> Claude adapter
-     +--> Codex adapter
-     +--> Cursor adapter
-     +--> GitHub Copilot adapter
-     +--> local/CI policy checks
+     +--> validate
+     |
+     +--> compile
+           |
+           +--> AGENTS.md
+           +--> CLAUDE.md
+           +--> .zigguard/manifest.json
+
+Future:
+     +--> local/CI checks
+     +--> hooks and enforceable controls
 ```
 
 ## MVP 0.1
 
 The first milestone is intentionally narrow:
 
-1. Define a versioned `zigguard.yml` policy.
-2. Validate it against a published schema.
-3. Compile supported policy rules into agent-specific configuration.
-4. Keep generated output deterministic and reviewable.
-5. Provide a local `check` path for rules that can be enforced mechanically.
+- versioned `zigguard.yml` policy;
+- strict YAML parsing and semantic validation;
+- `zigguard init`;
+- `zigguard validate`;
+- `zigguard compile`;
+- deterministic generated output;
+- safe refusal to overwrite unmanaged agent files;
+- shared `AGENTS.md` output for Codex, Cursor, and GitHub Copilot;
+- `CLAUDE.md` output for Claude Code;
+- generated target manifest;
+- automated Go tests and CI.
 
-Planned initial targets:
+## Build
 
-- Claude Code
-- OpenAI Codex
-- Cursor
-- GitHub Copilot
+Requires Go 1.23+ for development.
+
+```bash
+go test ./...
+go build -o bin/zigguard ./cmd/zigguard
+```
+
+## Quick start
+
+```bash
+./bin/zigguard init
+./bin/zigguard validate
+./bin/zigguard compile --dry-run
+./bin/zigguard compile
+```
+
+The compiler refuses to overwrite an existing unmanaged `AGENTS.md` or `CLAUDE.md` unless `--force` is explicitly supplied.
+
+See [docs/cli.md](docs/cli.md).
 
 ## Example policy
 
@@ -76,25 +103,35 @@ rules:
 
 See [zigguard.example.yml](zigguard.example.yml) and [docs/policy-spec.md](docs/policy-spec.md).
 
+## Important: instructions are not enforcement
+
+MVP 0.1 generates **instruction context**. A rule rendered as `BLOCK` is a strong instruction to the agent, but it is not equivalent to branch protection, a CI gate, a hook, or a security scanner.
+
+ZigGuard will add mechanical enforcement paths where they are technically possible. It will not market natural-language guidance as a hard security boundary.
+
 ## Design principles
 
 - **Policy first** — the canonical policy is tool-neutral.
-- **Deterministic output** — the same policy and version must generate the same result.
-- **Least privilege** — generated rules should not grant capabilities unnecessarily.
-- **No silent weakening** — unsupported `block` or approval rules must fail loudly.
-- **Human reviewable** — generated instructions should remain understandable in Git.
-- **Offline by default** — the core should not require sending source code to a remote service.
-- **Open core, optional cloud** — local policy compilation remains useful without a SaaS account.
+- **One policy, minimum duplication** — reuse shared standards where possible.
+- **Deterministic output** — the same policy and version generate the same result.
+- **Least privilege** — do not grant capabilities unnecessarily.
+- **No silent weakening** — capability level is explicit.
+- **Human reviewable** — generated instructions remain understandable in Git.
+- **Safe writes** — unmanaged files are not overwritten silently.
+- **Offline by default** — the core does not require a SaaS account.
+- **Open core, optional cloud** — local compilation remains useful without hosted services.
 
 ## Repository layout
 
 ```
-adapters/        Agent-specific compilation targets
-docs/            Product, architecture and policy specification
-examples/        Example projects and policies
-rules/           Built-in rule catalog
-schemas/         Machine-readable policy schemas
-AGENTS.md        Instructions for AI agents contributing to ZigGuard
+cmd/             CLI entry point
+internal/        policy parser, compiler, output safety, CLI
+adapters/        target behavior and capability documentation
+docs/            product, architecture, CLI and policy specification
+examples/        example projects and future fixtures
+rules/           built-in rule catalog
+schemas/         machine-readable policy schemas
+AGENTS.md        instructions for AI agents contributing to ZigGuard
 zigguard.example.yml
 ```
 

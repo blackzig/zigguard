@@ -1,7 +1,13 @@
 # Cursor Adapter
 
-Planned adapter for translating ZigGuard policy into Cursor project rules and other supported configuration mechanisms.
+## MVP surface
 
-Implementation has not started.
+Cursor consumes the generated shared policy from `AGENTS.md`, which Cursor supports as a project instruction mechanism.
 
-Generated content must be deterministic and clearly separated from user-authored rules.
+Cursor also supports project rules in `.cursor/rules/*.mdc`. ZigGuard will use those files later for conditional/path-specific behavior where they add value beyond the shared policy.
+
+## Current capability
+
+Instruction context only.
+
+The adapter must not claim that a Cursor rule or AGENTS instruction is a hard security control.

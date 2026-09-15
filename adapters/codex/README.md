@@ -1,7 +1,13 @@
 # OpenAI Codex Adapter
 
-Planned adapter for translating ZigGuard policy into Codex-compatible repository instructions and reusable agent guidance.
+## MVP surface
 
-Implementation has not started.
+Codex consumes the generated shared policy from `AGENTS.md`.
 
-The adapter must keep a capability matrix and must not claim technical enforcement when a rule can only be represented as instruction text.
+This keeps the ZigGuard output compatible with the repository-level instruction mechanism used by Codex while avoiding unnecessary target-specific duplication.
+
+## Current capability
+
+Instruction context only.
+
+Future Codex-specific capabilities can be added only when they provide semantics beyond the shared `AGENTS.md` policy.
