@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zigguard.dev/schemas/zigguard-0.1.schema.json",
+  "title": "ZigGuard Policy",
+  "description": "Draft ZigGuard policy schema v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "project", "targets", "rules"],
+  "properties": {
+    "version": {
+      "const": "0.1"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stack": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["claude", "codex", "cursor", "copilot"]
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "refactor_outside_request": { "$ref": "#/$defs/action" },
+            "public_api_changes": { "$ref": "#/$defs/action" }
+          }
+        },
+        "security": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "secrets": { "$ref": "#/$defs/action" },
+            "dynamic_sql": { "$ref": "#/$defs/action" }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tests_required": { "type": "boolean" },
+            "lint_required": { "type": "boolean" }
+          }
+        },
+        "git": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "force_push_protected_branches": { "$ref": "#/$defs/action" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "action": {
+      "type": "string",
+      "enum": ["allow", "warn", "require_approval", "block"]
+    }
+  }
+}
