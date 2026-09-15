@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/blackzig/zigguard/internal/managed"
 	"github.com/blackzig/zigguard/internal/policy"
 )
 
@@ -26,13 +27,27 @@ func TestCompileUsesSharedAgentsSurface(t *testing.T) {
 	}
 
 	agents := findArtifact(t, artifacts, "AGENTS.md")
+	if agents.Ownership != ManagedSection {
+		t.Fatalf("AGENTS.md ownership = %q, want %q", agents.Ownership, ManagedSection)
+	}
 	if !strings.Contains(agents.Content, "**BLOCK:**") {
 		t.Fatal("AGENTS.md does not contain BLOCK semantics")
 	}
+	if !strings.Contains(agents.Content, managed.StartMarker) || !strings.Contains(agents.Content, managed.EndMarker) {
+		t.Fatal("AGENTS.md does not contain managed section markers")
+	}
 
 	claude := findArtifact(t, artifacts, "CLAUDE.md")
+	if claude.Ownership != ManagedSection {
+		t.Fatalf("CLAUDE.md ownership = %q, want %q", claude.Ownership, ManagedSection)
+	}
 	if !strings.Contains(claude.Content, "@AGENTS.md") {
 		t.Fatal("CLAUDE.md should import AGENTS.md when shared targets are selected")
+	}
+
+	manifest := findArtifact(t, artifacts, ".zigguard/manifest.json")
+	if manifest.Ownership != ManagedFile {
+		t.Fatalf("manifest ownership = %q, want %q", manifest.Ownership, ManagedFile)
 	}
 }
 
@@ -62,6 +77,9 @@ func TestCompileClaudeOnlyEmbedsFullPolicy(t *testing.T) {
 	}
 	if !strings.Contains(claude.Content, "Governance rules") {
 		t.Fatal("Claude-only output does not contain full policy")
+	}
+	if claude.Ownership != ManagedSection {
+		t.Fatalf("Claude-only ownership = %q, want %q", claude.Ownership, ManagedSection)
 	}
 }
 

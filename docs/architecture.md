@@ -62,17 +62,26 @@ Target-specific formats are added only when they provide useful semantics that t
 
 ### File ownership
 
-Generated files contain a ZigGuard marker.
+Artifacts declare an ownership mode rather than relying on filename conventions:
 
-The compiler:
+- `managed-section` — ZigGuard owns only a delimited section inside a potentially human-maintained file;
+- `managed-file` — ZigGuard owns the entire artifact.
 
-- updates an identical or previously ZigGuard-managed file safely;
-- refuses to overwrite an unmanaged instruction file by default;
-- allows an explicit `--force` override;
+`AGENTS.md` and `CLAUDE.md` use `managed-section`. Their generated content is enclosed by explicit start/end markers. Existing human content before or after the section is preserved.
+
+`.zigguard/manifest.json` uses `managed-file`.
+
+The writer:
+
+- creates a managed section when the instruction file does not exist;
+- appends a managed section to an existing human-maintained instruction file;
+- replaces only an existing valid ZigGuard section on recompilation;
+- migrates the legacy fully generated instruction-file format;
+- rejects duplicate, reversed, or ambiguous managed markers without changing the file;
 - validates that generated paths remain inside the selected repository root;
 - writes through a temporary file before replacement.
 
-A later version will support managed-section merging.
+The checker applies the same ownership model: human content outside a valid managed section does not count as policy drift.
 
 ### Adapters and capability levels
 

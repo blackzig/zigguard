@@ -18,7 +18,10 @@ The project follows semantic versioning once the first public release is publish
 - Deterministic shared `AGENTS.md` generation for Codex, Cursor, and GitHub Copilot.
 - `CLAUDE.md` generation for Claude Code, importing `AGENTS.md` when a shared policy surface exists.
 - `.zigguard/manifest.json` target binding metadata.
-- Safe generated-file ownership and explicit `--force` override.
+- Explicit `managed-section` and `managed-file` artifact ownership.
+- Safe managed-section merging for existing `AGENTS.md` and `CLAUDE.md` files.
+- Automatic migration from the legacy fully generated instruction-file format.
+- Safe rejection of duplicate/reversed managed-section markers.
 - Unit tests and GitHub Actions CI.
 - Java + Spring Boot + Oracle example with exact compiler contract fixtures.
 - Target capability matrix distinguishing instruction context from enforcement.
@@ -30,6 +33,7 @@ The project follows semantic versioning once the first public release is publish
 
 ### Changed
 
+- `zigguard check` validates only ZigGuard-owned sections in mixed human/generated instruction files.
 - Java/Spring/Oracle generated fixture now mirrors the actual `.zigguard/manifest.json` repository layout.
 - ZigGuard-owned `.zigguard/` metadata can now be safely refreshed without `--force`.
 - CLI version is now injectable at build time for tagged releases.

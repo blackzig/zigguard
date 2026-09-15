@@ -15,7 +15,7 @@ go run ./cmd/zigguard compile \
   --root /tmp/zigguard-example
 ```
 
-The `generated/` directory mirrors the real repository layout produced by ZigGuard, including `generated/.zigguard/manifest.json`. It is used both as a compiler contract fixture and as the smoke-test repository for the official GitHub Action.
+The `generated/` directory mirrors the real repository layout produced by ZigGuard, including managed sections in `AGENTS.md`/`CLAUDE.md` and `generated/.zigguard/manifest.json`. It is used both as a compiler contract fixture and as the smoke-test repository for the official GitHub Action.
 
 ## Check the fixture
 
