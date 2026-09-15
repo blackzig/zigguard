@@ -1,11 +1,15 @@
 # Claude Code Adapter
 
-Planned adapter for translating ZigGuard policy into Claude Code-compatible project instructions and supported hooks/settings.
+## MVP surface
 
-Implementation has not started.
+Claude Code receives project instructions through `CLAUDE.md`.
 
-The adapter must keep a capability matrix and distinguish between:
+When the policy also targets Codex, Cursor, or GitHub Copilot, ZigGuard keeps the full shared policy in `AGENTS.md` and generates a small `CLAUDE.md` containing an `@AGENTS.md` import. Claude Code supports importing additional instruction files with the `@path` syntax.
 
-- natural-language guidance;
-- hook-based enforcement;
-- unsupported semantics.
+When Claude is the only target, the complete generated policy is written directly to `CLAUDE.md`.
+
+## Current capability
+
+Instruction context only.
+
+Future versions can add Claude-specific hooks for rules that have a safe technical enforcement path. A hook-backed rule must be reported separately from a natural-language instruction.

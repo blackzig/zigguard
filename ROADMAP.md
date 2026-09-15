@@ -8,19 +8,23 @@
 - [x] Policy v0.1 draft
 - [x] JSON Schema draft
 - [x] Initial agent adapter boundaries
-- [ ] Decide CLI implementation language and distribution model
-- [ ] Establish test fixtures for generated output
+- [x] Choose CLI implementation language: Go
+- [x] Establish deterministic compiler tests
 
 ## Phase 1 — MVP 0.1: Policy Compiler
 
-- [ ] `zigguard init`
-- [ ] `zigguard validate`
-- [ ] `zigguard compile`
-- [ ] Claude Code adapter
-- [ ] Codex adapter
-- [ ] Cursor adapter
-- [ ] GitHub Copilot adapter
-- [ ] Deterministic snapshot tests
+- [x] `zigguard init`
+- [x] `zigguard validate`
+- [x] `zigguard compile`
+- [x] Claude Code instruction surface
+- [x] Codex instruction surface
+- [x] Cursor instruction surface
+- [x] GitHub Copilot instruction surface
+- [x] Deterministic tests
+- [x] Safe generated-file ownership
+- [ ] Publish first pre-release binaries
+- [ ] Add managed-section merging for existing instruction files
+- [ ] Publish a formal target capability matrix
 
 ## Phase 2 — Local Enforcement
 
@@ -28,12 +32,12 @@
 - [ ] Git policy checks
 - [ ] secret scanning integration
 - [ ] lint/test command discovery
-- [ ] security rule hooks
-- [ ] machine-readable report output
+- [ ] Claude hook enforcement where technically appropriate
+- [ ] machine-readable check/report output
 
 ## Phase 3 — Repository Integration
 
-- [ ] GitHub Action
+- [ ] GitHub Action for policy checks
 - [ ] pull-request policy status
 - [ ] reusable organization policy bundles
 - [ ] policy inheritance and overrides

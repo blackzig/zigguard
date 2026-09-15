@@ -1,0 +1,12 @@
+# ZigGuard build output
+/bin/
+/dist/
+zigguard
+zigguard.exe
+
+# Go test/coverage output
+coverage.out
+*.test
+
+# Local ZigGuard files
+zigguard.local.yml

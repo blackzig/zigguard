@@ -18,7 +18,7 @@
         +-------------+         +----------------+
         |                                      |
 +-------v-------+                      +-------v--------+
-| Agent adapters|                      | Local checks   |
+| Agent surfaces|                      | Local checks   |
 +---+---+---+---+                      +----------------+
     |   |   |   |
  Claude Codex Cursor Copilot
@@ -31,28 +31,58 @@
 Responsibilities:
 
 - load `zigguard.yml`;
-- validate against a versioned schema;
+- strictly validate the supported v0.1 shape;
 - normalize values into an internal policy model;
-- reject unknown/unsafe combinations when required by the policy version.
+- reject unknown fields and unsupported values.
+
+A machine-readable JSON Schema remains published as the language-neutral contract. The Go MVP performs semantic validation in code.
 
 ### Policy compiler
 
 Responsibilities:
 
-- pass normalized rules to target adapters;
+- convert normalized rules into deterministic agent instructions;
+- prefer a shared instruction standard when several targets support it;
 - maintain deterministic ordering;
-- produce a plan/diff before writing;
-- reject unsupported security-sensitive semantics.
+- produce a visible dry-run plan;
+- never label instruction context as technical enforcement.
 
-### Adapters
+### Shared instruction strategy
 
-Each adapter translates neutral policy semantics into the native mechanism of one tool.
+Duplicating the same policy into multiple files can create drift and can cause tools that read more than one instruction format to load redundant guidance.
 
-Adapters must publish a capability matrix indicating whether each rule is:
+For MVP 0.1:
 
-- enforceable;
-- representable as instruction only;
-- unsupported.
+- Codex, Cursor, and GitHub Copilot share `AGENTS.md`;
+- Claude Code uses `CLAUDE.md`;
+- when both families are selected, `CLAUDE.md` imports `@AGENTS.md`;
+- `.zigguard/manifest.json` records which surface each selected target uses.
+
+Target-specific formats are added only when they provide useful semantics that the shared surface cannot express.
+
+### File ownership
+
+Generated files contain a ZigGuard marker.
+
+The compiler:
+
+- updates an identical or previously ZigGuard-managed file safely;
+- refuses to overwrite an unmanaged instruction file by default;
+- allows an explicit `--force` override;
+- validates that generated paths remain inside the selected repository root;
+- writes through a temporary file before replacement.
+
+A later version will support managed-section merging.
+
+### Adapters and capability levels
+
+Each target binding must identify its capability:
+
+- `instruction-context`;
+- `enforceable`;
+- `unsupported`.
+
+A natural-language instruction is never described as a hard control.
 
 ### Check engine
 
@@ -65,31 +95,18 @@ Examples:
 - required tests/lint execution;
 - unsafe generated-file changes.
 
-### Rule catalog
+This is a post-MVP 0.1 milestone.
 
-Built-in rules should have stable IDs, documented semantics, severity/action behavior, and test fixtures.
+### Determinism
 
-## Determinism
+Compilation output depends only on:
 
-Compilation output should depend only on:
-
-- ZigGuard version;
-- policy version;
+- ZigGuard version and policy version;
 - canonical policy input;
-- adapter version/capabilities.
+- adapter capabilities.
 
-Environment-specific data should not silently change generated files.
+Targets and stack values are sorted before rendering so semantically equivalent ordering does not create noisy output.
 
-## File ownership
+### Cloud boundary
 
-Generated content must distinguish between:
-
-- fully managed files;
-- managed sections inside shared files;
-- advisory output that ZigGuard does not write automatically.
-
-Overwriting user-maintained content without an explicit merge strategy is prohibited.
-
-## Cloud boundary
-
-The local core must remain useful offline. Hosted functionality should consume explicit metadata/artifacts and should not require source-code upload unless the user knowingly enables a feature that needs it.
+The local core remains useful offline. Hosted functionality should consume explicit metadata/artifacts and should not require source-code upload unless the user knowingly enables a feature that needs it.
