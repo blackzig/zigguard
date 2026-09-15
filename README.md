@@ -101,13 +101,15 @@ rules:
     force_push_protected_branches: block
 ```
 
-See [zigguard.example.yml](zigguard.example.yml) and [docs/policy-spec.md](docs/policy-spec.md).
+See [zigguard.example.yml](zigguard.example.yml), [docs/policy-spec.md](docs/policy-spec.md), and the complete [Java + Spring Boot + Oracle fixture](examples/java-spring-oracle/README.md).
 
 ## Important: instructions are not enforcement
 
 MVP 0.1 generates **instruction context**. A rule rendered as `BLOCK` is a strong instruction to the agent, but it is not equivalent to branch protection, a CI gate, a hook, or a security scanner.
 
 ZigGuard will add mechanical enforcement paths where they are technically possible. It will not market natural-language guidance as a hard security boundary.
+
+See the current [target capability matrix](docs/capability-matrix.md).
 
 ## Design principles
 
@@ -134,6 +136,10 @@ schemas/         machine-readable policy schemas
 AGENTS.md        instructions for AI agents contributing to ZigGuard
 zigguard.example.yml
 ```
+
+## Releases
+
+Cross-platform release automation is prepared for Linux, macOS, and Windows on amd64/arm64. No public binary release is published yet. See [docs/releasing.md](docs/releasing.md).
 
 ## Roadmap
 
