@@ -15,6 +15,14 @@ go run ./cmd/zigguard compile \
   --root /tmp/zigguard-example
 ```
 
-The `generated/` directory contains the expected deterministic output used by the compiler contract test.
+The `generated/` directory mirrors the real repository layout produced by ZigGuard, including `generated/.zigguard/manifest.json`. It is used both as a compiler contract fixture and as the smoke-test repository for the official GitHub Action.
+
+## Check the fixture
+
+```bash
+go run ./cmd/zigguard check \
+  --file examples/java-spring-oracle/zigguard.yml \
+  --root examples/java-spring-oracle/generated
+```
 
 This example is intentionally generic and contains no proprietary application rules.

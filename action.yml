@@ -1,0 +1,52 @@
+name: ZigGuard Check
+description: Verify that AI coding governance artifacts are present and in sync with zigguard.yml.
+author: blackzig
+
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  policy-file:
+    description: Path to the ZigGuard policy file, relative to the repository workspace.
+    required: false
+    default: zigguard.yml
+  root:
+    description: Repository root whose generated ZigGuard artifacts should be checked.
+    required: false
+    default: .
+  format:
+    description: ZigGuard check output format (text or json).
+    required: false
+    default: text
+  go-version:
+    description: Go version used to build the pinned ZigGuard action source.
+    required: false
+    default: 1.23.x
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v7
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: false
+
+    - name: Build ZigGuard
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        go build -trimpath -o "$RUNNER_TEMP/zigguard" ./cmd/zigguard
+
+    - name: Check ZigGuard policy artifacts
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        ZIGGUARD_POLICY_FILE: ${{ inputs.policy-file }}
+        ZIGGUARD_ROOT: ${{ inputs.root }}
+        ZIGGUARD_FORMAT: ${{ inputs.format }}
+      run: |
+        set -euo pipefail
+        "$RUNNER_TEMP/zigguard" check           --file "$ZIGGUARD_POLICY_FILE"           --root "$ZIGGUARD_ROOT"           --format "$ZIGGUARD_FORMAT"
