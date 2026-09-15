@@ -26,10 +26,11 @@ func TestJavaSpringOracleFixture(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	generatedDir := filepath.Join(exampleDir, "generated")
 	expectedByArtifact := map[string]string{
-		"AGENTS.md":               filepath.Join(exampleDir, "generated", "AGENTS.md"),
-		"CLAUDE.md":               filepath.Join(exampleDir, "generated", "CLAUDE.md"),
-		".zigguard/manifest.json": filepath.Join(exampleDir, "generated", "manifest.json"),
+		"AGENTS.md":               filepath.Join(generatedDir, "AGENTS.md"),
+		"CLAUDE.md":               filepath.Join(generatedDir, "CLAUDE.md"),
+		".zigguard/manifest.json": filepath.Join(generatedDir, ".zigguard", "manifest.json"),
 	}
 
 	if len(artifacts) != len(expectedByArtifact) {

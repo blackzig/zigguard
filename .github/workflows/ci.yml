@@ -31,6 +31,20 @@ jobs:
       - name: Build
         run: go build ./cmd/zigguard
 
+  action-smoke-test:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run local ZigGuard Action
+        uses: ./
+        with:
+          policy-file: examples/java-spring-oracle/zigguard.yml
+          root: examples/java-spring-oracle/generated
+          format: json
+
   cross-build:
     needs: test
     runs-on: ubuntu-latest

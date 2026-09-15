@@ -12,6 +12,8 @@ The project follows semantic versioning once the first public release is publish
 - `zigguard init`, `zigguard validate`, `zigguard compile`, and `zigguard check`.
 - Mechanical generated-artifact integrity checks with `ZG001`, `ZG002`, and `ZG003` violations.
 - Human-readable and JSON check reports suitable for CI.
+- Official composite GitHub Action for pull-request governance checks.
+- GitHub Action smoke testing against the Java + Spring Boot + Oracle fixture.
 - Strict YAML parsing with semantic validation.
 - Deterministic shared `AGENTS.md` generation for Codex, Cursor, and GitHub Copilot.
 - `CLAUDE.md` generation for Claude Code, importing `AGENTS.md` when a shared policy surface exists.
@@ -28,5 +30,6 @@ The project follows semantic versioning once the first public release is publish
 
 ### Changed
 
+- Java/Spring/Oracle generated fixture now mirrors the actual `.zigguard/manifest.json` repository layout.
 - ZigGuard-owned `.zigguard/` metadata can now be safely refreshed without `--force`.
 - CLI version is now injectable at build time for tagged releases.

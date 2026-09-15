@@ -40,8 +40,8 @@
 
 ## Phase 3 — Repository Integration
 
-- [ ] GitHub Action for policy checks
-- [ ] pull-request policy status
+- [x] GitHub Action for policy checks
+- [x] pull-request policy status via GitHub Actions
 - [ ] reusable organization policy bundles
 - [ ] policy inheritance and overrides
 
