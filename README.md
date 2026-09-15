@@ -4,7 +4,7 @@
 
 ZigGuard is an open-core project for defining engineering policies once and compiling them into safe, reviewable instruction and enforcement surfaces for AI-assisted software development.
 
-> **Status:** pre-alpha. MVP 0.1 now includes a working Go CLI for policy initialization, validation, and deterministic instruction compilation.
+> **Status:** pre-alpha. ZigGuard includes a working Go CLI for policy initialization, validation, deterministic instruction compilation, and the first mechanically enforced drift check.
 
 ## Why ZigGuard?
 
@@ -23,9 +23,14 @@ zigguard.yml
            +--> CLAUDE.md
            +--> .zigguard/manifest.json
 
+     +--> check
+           |
+           +--> missing artifacts
+           +--> policy drift
+           +--> unmanaged conflicts
+
 Future:
-     +--> local/CI checks
-     +--> hooks and enforceable controls
+     +--> hooks and additional enforceable controls
 ```
 
 ## MVP 0.1
@@ -37,6 +42,7 @@ The first milestone is intentionally narrow:
 - `zigguard init`;
 - `zigguard validate`;
 - `zigguard compile`;
+- `zigguard check` for generated-artifact integrity;
 - deterministic generated output;
 - safe refusal to overwrite unmanaged agent files;
 - shared `AGENTS.md` output for Codex, Cursor, and GitHub Copilot;
@@ -60,6 +66,7 @@ go build -o bin/zigguard ./cmd/zigguard
 ./bin/zigguard validate
 ./bin/zigguard compile --dry-run
 ./bin/zigguard compile
+./bin/zigguard check
 ```
 
 The compiler refuses to overwrite an existing unmanaged `AGENTS.md` or `CLAUDE.md` unless `--force` is explicitly supplied.
@@ -109,6 +116,8 @@ MVP 0.1 generates **instruction context**. A rule rendered as `BLOCK` is a stron
 
 ZigGuard will add mechanical enforcement paths where they are technically possible. It will not market natural-language guidance as a hard security boundary.
 
+`zigguard check` is the first mechanical control: it fails when generated governance artifacts are missing, drifted from `zigguard.yml`, or replaced by unmanaged files. It does not yet enforce the semantic rules inside those instructions.
+
 See the current [target capability matrix](docs/capability-matrix.md).
 
 ## Design principles
@@ -127,7 +136,7 @@ See the current [target capability matrix](docs/capability-matrix.md).
 
 ```
 cmd/             CLI entry point
-internal/        policy parser, compiler, output safety, CLI
+internal/        policy parser, compiler, checker, output safety, CLI
 adapters/        target behavior and capability documentation
 docs/            product, architecture, CLI and policy specification
 examples/        example projects and future fixtures
