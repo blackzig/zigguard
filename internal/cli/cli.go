@@ -153,7 +153,7 @@ func runCompile(args []string, stdout, stderr io.Writer) int {
 }
 
 func printUsage(w io.Writer) {
-	fmt.Fprintln(w, `ZigGuard - universal governance layer for AI coding agents
+	fmt.Fprint(w, `ZigGuard - universal governance layer for AI coding agents
 
 Usage:
   zigguard init [--file zigguard.yml] [--force]
