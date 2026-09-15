@@ -1,0 +1,26 @@
+{
+  "policy_version": "0.1",
+  "project": "legacy-integrity-service",
+  "bindings": [
+    {
+      "target": "claude",
+      "surface": "CLAUDE.md",
+      "capability": "instruction-context"
+    },
+    {
+      "target": "codex",
+      "surface": "AGENTS.md",
+      "capability": "instruction-context"
+    },
+    {
+      "target": "copilot",
+      "surface": "AGENTS.md",
+      "capability": "instruction-context"
+    },
+    {
+      "target": "cursor",
+      "surface": "AGENTS.md",
+      "capability": "instruction-context"
+    }
+  ]
+}
