@@ -22,9 +22,12 @@
 - [x] GitHub Copilot instruction surface
 - [x] Deterministic tests
 - [x] Safe generated-file ownership
+- [x] Real Java + Spring Boot + Oracle fixture
+- [x] Compiler fixture contract test
+- [x] Formal target capability matrix
+- [x] Automated cross-platform release workflow
 - [ ] Publish first pre-release binaries
 - [ ] Add managed-section merging for existing instruction files
-- [ ] Publish a formal target capability matrix
 
 ## Phase 2 — Local Enforcement
 

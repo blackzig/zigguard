@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Vet
+        run: go vet ./...
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            extension: ""
+            archive: tar.gz
+          - goos: linux
+            goarch: arm64
+            extension: ""
+            archive: tar.gz
+          - goos: darwin
+            goarch: amd64
+            extension: ""
+            archive: tar.gz
+          - goos: darwin
+            goarch: arm64
+            extension: ""
+            archive: tar.gz
+          - goos: windows
+            goarch: amd64
+            extension: .exe
+            archive: zip
+          - goos: windows
+            goarch: arm64
+            extension: .exe
+            archive: zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          cache: true
+
+      - name: Build archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          NAME="zigguard_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          mkdir -p "dist/${NAME}"
+
+          GOOS="${{ matrix.goos }}" GOARCH="${{ matrix.goarch }}" CGO_ENABLED=0 \
+            go build -trimpath \
+            -ldflags "-s -w -X github.com/blackzig/zigguard/internal/cli.Version=${VERSION}" \
+            -o "dist/${NAME}/zigguard${{ matrix.extension }}" \
+            ./cmd/zigguard
+
+          cp LICENSE README.md "dist/${NAME}/"
+
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            (cd dist && zip -r "${NAME}.zip" "${NAME}")
+          else
+            tar -C dist -czf "dist/${NAME}.tar.gz" "${NAME}"
+          fi
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: zigguard-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download archives
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          FLAGS=(--generate-notes)
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            FLAGS+=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" "${FLAGS[@]}" dist/*
