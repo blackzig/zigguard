@@ -48,7 +48,7 @@ func writeArtifact(rootAbs string, artifact compiler.Artifact, force bool) error
 		if bytes.Equal(current, []byte(artifact.Content)) {
 			return nil
 		}
-		if !force && !bytes.Contains(current, []byte(compiler.ManagedMarker)) {
+		if !force && !isManagedArtifact(artifact.Path, current) {
 			return fmt.Errorf("refusing to overwrite unmanaged file %q; move/merge it or rerun with --force", artifact.Path)
 		}
 	} else if !os.IsNotExist(err) {
@@ -81,4 +81,12 @@ func writeArtifact(rootAbs string, artifact compiler.Artifact, force bool) error
 		return fmt.Errorf("replace artifact %q: %w", artifact.Path, err)
 	}
 	return nil
+}
+
+func isManagedArtifact(path string, current []byte) bool {
+	normalized := filepath.ToSlash(filepath.Clean(path))
+	if strings.HasPrefix(normalized, ".zigguard/") {
+		return true
+	}
+	return bytes.Contains(current, []byte(compiler.ManagedMarker))
 }
