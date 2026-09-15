@@ -146,6 +146,12 @@ AGENTS.md        instructions for AI agents contributing to ZigGuard
 zigguard.example.yml
 ```
 
+## GitHub Action
+
+ZigGuard includes an official composite GitHub Action for pull-request governance checks. Once the first prerelease tag is published, repositories can pin that tag and run `zigguard check` directly in CI.
+
+See [docs/github-action.md](docs/github-action.md).
+
 ## Releases
 
 Cross-platform release automation is prepared for Linux, macOS, and Windows on amd64/arm64. No public binary release is published yet. See [docs/releasing.md](docs/releasing.md).
